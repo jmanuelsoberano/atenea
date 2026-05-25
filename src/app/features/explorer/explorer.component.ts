@@ -31,7 +31,7 @@ export class ExplorerComponent {
       if (activePath && vaultPath) {
         this.revealPathInTree(activePath, vaultPath);
       }
-    });
+    }, { allowSignalWrites: true });
   }
 
   // Revela un archivo específico expandiendo todas las carpetas ancestras
