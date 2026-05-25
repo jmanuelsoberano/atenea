@@ -136,9 +136,9 @@ export class GraphComponent implements AfterViewInit, OnDestroy {
 
     // Círculos del nodo
     nodeG.append('circle')
-      .attr('r', d => d.path === this.fileSystem.activeFilePath() ? 10 : 7)
+      .attr('r', d => (d.path && d.path === this.fileSystem.activeFilePath()) ? 10 : 7)
       .attr('class', d => {
-        if (d.path === this.fileSystem.activeFilePath()) return 'circle-node active';
+        if (d.path && d.path === this.fileSystem.activeFilePath()) return 'circle-node active';
         return d.exists ? 'circle-node physical' : 'circle-node ghost';
       });
 
@@ -147,7 +147,7 @@ export class GraphComponent implements AfterViewInit, OnDestroy {
       .text(d => d.id)
       .attr('y', 18)
       .attr('text-anchor', 'middle')
-      .attr('class', d => d.path === this.fileSystem.activeFilePath() ? 'text-node active' : 'text-node');
+      .attr('class', d => (d.path && d.path === this.fileSystem.activeFilePath()) ? 'text-node active' : 'text-node');
 
     // Doble clic para abrir/crear la nota
     nodeG.on('dblclick', async (event, d) => {
