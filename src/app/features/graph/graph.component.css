@@ -79,6 +79,30 @@
   stroke: hsl(35, 90%, 60%);
 }
 
+/* Nodo Seleccionado Fijo (Anchor de Selección por Clic) - Estética de Cian Eléctrico */
+.circle-node.selected {
+  fill: hsl(190, 90%, 50%);
+  stroke: hsl(190, 90%, 50%);
+  filter: drop-shadow(0 0 10px hsla(190, 90%, 50%, 0.6));
+  animation: pulse-cyan 2s infinite ease-in-out;
+}
+
+@keyframes pulse-cyan {
+  0%, 100% { filter: drop-shadow(0 0 6px hsla(190, 90%, 50%, 0.4)); }
+  50% { filter: drop-shadow(0 0 14px hsla(190, 90%, 50%, 0.8)); }
+}
+
+.node-group:hover .circle-node.selected {
+  fill: hsl(190, 100%, 55%);
+  stroke: hsl(190, 100%, 55%);
+}
+
+.text-node.selected {
+  fill: hsl(190, 90%, 65%) !important;
+  font-weight: 700;
+  font-size: 12px;
+}
+
 /* Etiquetas del Grafo */
 .text-node {
   font-family: var(--font-sans);

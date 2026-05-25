@@ -64,6 +64,8 @@ export class GraphComponent implements AfterViewInit, OnDestroy {
       if (!isNodeClick) {
         this.selectedNodeId = null;
         this.svgSelection?.selectAll('.node-group').style('opacity', 1.0);
+        this.svgSelection?.selectAll('.circle-node').classed('selected', false);
+        this.svgSelection?.selectAll('.text-node').classed('selected', false);
         this.svgSelection?.selectAll('.link-line')
           .style('stroke-opacity', 0.5)
           .style('stroke', 'hsl(220, 12%, 32%)')
@@ -224,10 +226,14 @@ export class GraphComponent implements AfterViewInit, OnDestroy {
         // Deseleccionar si ya estaba seleccionado
         this.selectedNodeId = null;
         resetHighlight();
+        nodeG.selectAll('circle').classed('selected', false);
+        nodeG.selectAll('text').classed('selected', false);
       } else {
         // Seleccionar y bloquear el resaltado
         this.selectedNodeId = clickedNode.id;
         applyHighlight(clickedNode);
+        nodeG.selectAll('circle').classed('selected', (d: any) => d.id === clickedNode.id);
+        nodeG.selectAll('text').classed('selected', (d: any) => d.id === clickedNode.id);
       }
     });
 
