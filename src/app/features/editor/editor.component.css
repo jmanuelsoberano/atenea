@@ -1,0 +1,10 @@
+.editor-view-container {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+:host ::ng-deep .cm-editor {
+  height: 100%;
+  width: 100%;
+}

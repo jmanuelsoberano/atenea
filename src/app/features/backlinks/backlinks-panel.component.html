@@ -1,0 +1,31 @@
+<div class="backlinks-panel" [class.collapsed]="isCollapsed()">
+  <header class="panel-header" (click)="togglePanel()">
+    <div class="header-title">
+      <span class="panel-icon">🔗</span>
+      <span class="panel-title">Enlaces entrantes</span>
+      <span class="badge">{{ backlinksService.activeBacklinks().length }}</span>
+    </div>
+    <button class="toggle-btn">
+      <svg viewBox="0 0 24 24" class="arrow-icon" [class.rotated]="isCollapsed()">
+        <path d="M7 10l5 5 5-5H7z"/>
+      </svg>
+    </button>
+  </header>
+
+  @if (!isCollapsed()) {
+    <div class="panel-content">
+      @if (backlinksService.activeBacklinks().length === 0) {
+        <p class="empty-message">No hay ninguna nota que enlace a este archivo.</p>
+      } @else {
+        <div class="backlinks-grid">
+          @for (link of backlinksService.activeBacklinks(); track link.path) {
+            <div class="backlink-card" (click)="openBacklink(link.path)">
+              <span class="card-icon">📝</span>
+              <span class="card-label">{{ link.name }}</span>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>

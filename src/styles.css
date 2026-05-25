@@ -1,0 +1,117 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* Reset y variables de diseño premium */
+:root {
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  
+  /* Paleta HSL Dark Mode por defecto (Estética de Obsidiana/Lujo) */
+  --bg-primary: hsl(220, 15%, 8%);
+  --bg-secondary: hsl(220, 15%, 11%);
+  --bg-tertiary: hsl(220, 15%, 15%);
+  --border-color: hsl(220, 15%, 18%);
+  
+  --text-primary: hsl(210, 15%, 90%);
+  --text-secondary: hsl(210, 10%, 65%);
+  --text-muted: hsl(210, 10%, 45%);
+  
+  /* Colores de acento */
+  --accent-color: hsl(250, 85%, 65%);
+  --accent-hover: hsl(250, 85%, 72%);
+  --accent-glow: hsla(250, 85%, 65%, 0.15);
+  
+  --accent-success: hsl(140, 70%, 45%);
+  --accent-warning: hsl(35, 80%, 55%);
+  --accent-danger: hsl(350, 80%, 55%);
+  
+  /* Sombras y transiciones */
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.5);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.6);
+  --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 1.5;
+  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Scrollbars elegantes */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--bg-tertiary);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-color);
+}
+
+/* Estilos de botones interactivos premium */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-weight: 500;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  outline: none;
+}
+
+.btn:hover {
+  border-color: var(--accent-color);
+  background-color: hsl(220, 15%, 18%);
+  box-shadow: 0 0 10px var(--accent-glow);
+}
+
+.btn-primary {
+  background-color: var(--accent-color);
+  border-color: var(--accent-color);
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: var(--accent-hover);
+  border-color: var(--accent-hover);
+  box-shadow: 0 0 15px var(--accent-glow);
+}
+
+.btn-text {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-secondary);
+}
+
+.btn-text:hover {
+  color: var(--text-primary);
+  background-color: var(--bg-secondary);
+}

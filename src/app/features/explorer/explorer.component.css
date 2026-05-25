@@ -1,0 +1,361 @@
+.explorer-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  color: var(--text-primary);
+}
+
+/* Empty State */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 40px 20px;
+  height: 100%;
+}
+
+.empty-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.6;
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.empty-state h3 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--text-primary);
+}
+
+.empty-state p {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: 24px;
+  line-height: 1.6;
+}
+
+/* Header */
+.explorer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 4px 12px 4px;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 8px;
+}
+
+.vault-name {
+  font-size: 12px;
+  color: var(--text-secondary);
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  max-width: 140px;
+}
+
+.vault-name strong {
+  color: var(--text-primary);
+}
+
+.header-actions {
+  display: flex;
+  gap: 2px;
+}
+
+.icon-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all var(--transition-fast);
+}
+
+.icon-btn:hover {
+  background-color: var(--bg-tertiary);
+}
+
+.svg-icon {
+  width: 16px;
+  height: 16px;
+  fill: var(--text-secondary);
+  transition: fill var(--transition-fast);
+}
+
+.icon-btn:hover .svg-icon {
+  fill: var(--text-primary);
+}
+
+/* Tree Nodes */
+.tree-container {
+  flex-grow: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.tree-node {
+  display: flex;
+  align-items: center;
+  height: 30px;
+  border-radius: 4px;
+  cursor: pointer;
+  user-select: none;
+  transition: all var(--transition-fast);
+  position: relative;
+  padding-right: 60px; /* Espacio para acciones hover */
+}
+
+.tree-node:hover {
+  background-color: var(--bg-tertiary);
+}
+
+.tree-node.active {
+  background-color: var(--accent-glow);
+  color: var(--text-primary);
+}
+
+.tree-node.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 4px;
+  bottom: 4px;
+  width: 2px;
+  background-color: var(--accent-color);
+  border-radius: 1px;
+}
+
+.arrow-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 2px;
+  transition: background var(--transition-fast);
+}
+
+.arrow-btn:hover {
+  background-color: hsl(220, 15%, 20%);
+}
+
+.arrow-icon {
+  width: 12px;
+  height: 12px;
+  fill: var(--text-muted);
+  transition: transform var(--transition-normal);
+}
+
+.arrow-icon.expanded {
+  transform: rotate(90deg);
+}
+
+.arrow-placeholder {
+  width: 18px;
+  display: inline-block;
+}
+
+.node-icon {
+  font-size: 13px;
+  margin-right: 6px;
+  display: flex;
+  align-items: center;
+  user-select: none;
+}
+
+.node-label {
+  font-size: 13px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-grow: 1;
+  transition: color var(--transition-fast);
+}
+
+.tree-node:hover .node-label,
+.tree-node.active .node-label {
+  color: var(--text-primary);
+}
+
+/* Node Hover Actions */
+.node-actions {
+  display: none;
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  gap: 2px;
+  background-color: var(--bg-tertiary);
+  padding: 2px 4px;
+  border-radius: 4px;
+  box-shadow: var(--shadow-sm);
+}
+
+.tree-node:hover .node-actions {
+  display: flex;
+}
+
+.node-action-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 3px;
+  transition: all var(--transition-fast);
+}
+
+.node-action-btn:hover {
+  background-color: hsl(220, 15%, 25%);
+}
+
+.node-action-btn svg {
+  width: 12px;
+  height: 12px;
+  fill: var(--text-secondary);
+}
+
+.node-action-btn:hover svg {
+  fill: var(--text-primary);
+}
+
+.node-action-btn.delete-action:hover {
+  background-color: hsla(350, 80%, 55%, 0.2);
+}
+
+.node-action-btn.delete-action:hover svg {
+  fill: var(--accent-danger);
+}
+
+/* Inline Prompts */
+.inline-prompt-form {
+  display: flex;
+  align-items: center;
+  height: 28px;
+  border-radius: 4px;
+  border: 1px solid var(--accent-color);
+  background-color: var(--bg-tertiary);
+  padding: 0 6px;
+  width: calc(100% - 16px);
+  box-shadow: 0 0 8px var(--accent-glow);
+}
+
+.inline-prompt-form input {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 13px;
+  width: 100%;
+  padding-left: 4px;
+}
+
+.prompt-icon {
+  font-size: 12px;
+  opacity: 0.8;
+  display: flex;
+  align-items: center;
+}
+
+.root-prompt {
+  margin: 4px 8px;
+  width: calc(100% - 16px);
+}
+
+.child-prompt {
+  margin: 2px 0 2px 0;
+  width: calc(100% - 12px);
+}
+
+.rename-form {
+  border-color: var(--accent-color);
+  background-color: var(--bg-tertiary);
+  flex-grow: 1;
+  padding: 0;
+  height: 22px;
+}
+
+.rename-form input {
+  padding-left: 2px;
+  font-size: 13px;
+}
+
+/* Search Box Styles */
+.search-box {
+  display: flex;
+  align-items: center;
+  height: 30px;
+  background-color: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 0 8px;
+  margin: 4px 4px 12px 4px;
+  transition: all var(--transition-fast);
+  position: relative;
+}
+
+.search-box:focus-within {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 8px var(--accent-glow);
+}
+
+.search-icon {
+  font-size: 11px;
+  opacity: 0.5;
+  margin-right: 6px;
+  display: flex;
+  align-items: center;
+  user-select: none;
+}
+
+.search-box input {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 12px;
+  width: 100%;
+}
+
+.search-box input::placeholder {
+  color: var(--text-muted);
+}
+
+.clear-search-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  padding: 0 2px;
+  transition: color var(--transition-fast);
+}
+
+.clear-search-btn:hover {
+  color: var(--text-primary);
+}

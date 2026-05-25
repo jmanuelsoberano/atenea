@@ -1,0 +1,163 @@
+.graph-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  background-color: var(--bg-primary);
+  overflow: hidden;
+}
+
+.graph-svg {
+  width: 100%;
+  height: 100%;
+  cursor: grab;
+}
+
+.graph-svg:active {
+  cursor: grabbing;
+}
+
+/* Conexiones / Aristas */
+.link-line {
+  stroke: var(--border-color);
+  stroke-width: 1.5px;
+  stroke-opacity: 0.45;
+  transition: stroke-opacity var(--transition-fast);
+}
+
+.node-group:hover ~ .links .link-line {
+  stroke-opacity: 0.8;
+}
+
+/* Nodos */
+.circle-node {
+  stroke-width: 1.5px;
+  transition: all var(--transition-fast);
+}
+
+/* Nodo de Nota Física */
+.circle-node.physical {
+  fill: var(--accent-color);
+  stroke: var(--accent-color);
+  stroke-opacity: 0.5;
+}
+
+.node-group:hover .circle-node.physical {
+  fill: var(--accent-hover);
+  stroke: var(--accent-hover);
+  filter: drop-shadow(0 0 6px var(--accent-color));
+}
+
+/* Nodo de Nota Fantasma (Inexistente) */
+.circle-node.ghost {
+  fill: hsla(350, 80%, 55%, 0.05);
+  stroke: var(--accent-danger);
+  stroke-dasharray: 3, 3;
+}
+
+.node-group:hover .circle-node.ghost {
+  fill: hsla(350, 80%, 55%, 0.15);
+  stroke: hsl(350, 80%, 65%);
+  filter: drop-shadow(0 0 6px var(--accent-danger));
+}
+
+/* Nodo de la Nota Activa Abierta en Editor */
+.circle-node.active {
+  fill: var(--accent-warning);
+  stroke: var(--accent-warning);
+  filter: drop-shadow(0 0 10px hsla(35, 80%, 55%, 0.6));
+  animation: pulse-gold 2s infinite ease-in-out;
+}
+
+@keyframes pulse-gold {
+  0%, 100% { filter: drop-shadow(0 0 6px hsla(35, 80%, 55%, 0.4)); }
+  50% { filter: drop-shadow(0 0 14px hsla(35, 80%, 55%, 0.8)); }
+}
+
+.node-group:hover .circle-node.active {
+  fill: hsl(35, 90%, 60%);
+  stroke: hsl(35, 90%, 60%);
+}
+
+/* Etiquetas del Grafo */
+.text-node {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 500;
+  fill: var(--text-secondary);
+  pointer-events: none;
+  user-select: none;
+  transition: all var(--transition-fast);
+}
+
+.node-group:hover .text-node {
+  fill: var(--text-primary);
+  font-size: 12px;
+}
+
+.text-node.active {
+  fill: var(--text-primary);
+  font-weight: 700;
+  font-size: 12px;
+}
+
+/* Controles Flotantes Premium */
+.graph-controls {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background-color: hsla(220, 15%, 8%, 0.8);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--border-color);
+  padding: 8px 16px;
+  border-radius: 30px;
+  box-shadow: var(--shadow-md), 0 0 15px rgba(0, 0, 0, 0.5);
+  z-index: 10;
+  pointer-events: auto;
+  user-select: none;
+}
+
+.controls-guide {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-right: 1px solid var(--border-color);
+  padding-right: 16px;
+}
+
+.guide-icon {
+  font-size: 12px;
+}
+
+.guide-text {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.center-btn {
+  background-color: var(--bg-tertiary);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-size: 11px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all var(--transition-fast);
+}
+
+.center-btn:hover {
+  background-color: var(--bg-secondary);
+  border-color: var(--accent-color);
+  box-shadow: 0 0 10px var(--accent-glow);
+}
+
+.btn-icon {
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+}

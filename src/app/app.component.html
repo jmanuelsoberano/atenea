@@ -1,0 +1,100 @@
+<div class="app-container">
+  <!-- Barra lateral izquierda para el explorador de archivos -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <span class="app-title">Atenea</span>
+    </div>
+    <div class="sidebar-content">
+      <app-explorer />
+    </div>
+  </aside>
+
+  <!-- Área de trabajo central (Editor / Grafo / Vista de Bienvenida) -->
+  <main class="main-workspace">
+    @if (!fileSystem.currentVaultPath()) {
+      <!-- Pantalla de Bienvenida inicial cuando no hay carpeta abierta -->
+      <div class="welcome-container">
+        <h1 class="welcome-title">Bienvenido a Atenea</h1>
+        <p class="welcome-subtitle">Tu red de conocimiento local-first, rápida y segura.</p>
+        
+        <div class="welcome-shortcuts">
+          <div class="shortcut-card" (click)="fileSystem.selectVault()">
+            <div class="shortcut-icon">📂</div>
+            <div class="shortcut-info">
+              <h4>Abrir Bóveda</h4>
+              <p>Selecciona una carpeta en tu disco local para comenzar.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    } @else {
+      <!-- Barra de herramientas superior del Workspace -->
+      <header class="workspace-header">
+        <div class="workspace-tabs">
+          <button 
+            class="tab-btn" 
+            [class.active]="activeView() === 'editor'"
+            (click)="activeView.set('editor')"
+          >
+            📝 Notas
+          </button>
+          <button 
+            class="tab-btn" 
+            [class.active]="activeView() === 'graph'"
+            (click)="activeView.set('graph')"
+          >
+            🕸️ Grafo de Conocimiento
+          </button>
+        </div>
+      </header>
+
+      <!-- Contenedor de contenido activo -->
+      <div class="workspace-content">
+        @if (activeView() === 'graph') {
+          <app-graph />
+        } @else {
+          @if (!fileSystem.activeFilePath()) {
+            <!-- Pantalla informativa si no hay ninguna nota seleccionada -->
+            <div class="welcome-container">
+              <h1 class="welcome-title">Bóveda: {{ explorerRef.vaultName }}</h1>
+              <p class="welcome-subtitle">Selecciona una nota en el explorador lateral o crea una nueva para comenzar a escribir.</p>
+              
+              <div class="welcome-shortcuts">
+                <div class="shortcut-card" (click)="explorerRef.openPrompt('file', '')">
+                  <div class="shortcut-icon">📝</div>
+                  <div class="shortcut-info">
+                    <h4>Nueva Nota</h4>
+                    <p>Crea un archivo markdown en la raíz de tu bóveda.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          } @else {
+            <div class="editor-container">
+              <header class="editor-header">
+                <div class="file-info">
+                  <span class="file-icon">📝</span>
+                  <span class="file-name">{{ activeFileName }}</span>
+                </div>
+                <div class="editor-actions">
+                  @if (isDirty()) {
+                    <span class="save-status dirty">Guardando...</span>
+                  } @else {
+                    <span class="save-status saved">✓ Guardado en disco</span>
+                  }
+                </div>
+              </header>
+              
+              <div class="editor-textarea-wrapper">
+                <app-editor (isDirtyChange)="isDirty.set($event)" />
+              </div>
+              
+              <!-- Panel inferior colapsable para backlinks -->
+              <app-backlinks-panel />
+            </div>
+          }
+        }
+      </div>
+    }
+  </main>
+</div>

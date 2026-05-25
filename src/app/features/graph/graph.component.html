@@ -1,0 +1,15 @@
+<div class="graph-container">
+  <!-- Lienzo SVG responsivo de D3 -->
+  <svg #svgContainer class="graph-svg" width="100%" height="100%"></svg>
+  
+  <!-- Controles flotantes de la simulación -->
+  <div class="graph-controls">
+    <div class="controls-guide">
+      <span class="guide-icon">💡</span>
+      <span class="guide-text">Doble clic en un nodo para abrir o crear la nota</span>
+    </div>
+    <button class="btn btn-sm center-btn" (click)="centerGraph()">
+      <span class="btn-icon">🎯</span> Centrar Grafo
+    </button>
+  </div>
+</div>
