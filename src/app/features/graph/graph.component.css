@@ -18,14 +18,10 @@
 
 /* Conexiones / Aristas */
 .link-line {
-  stroke: var(--border-color);
+  stroke: hsl(220, 12%, 32%);
   stroke-width: 1.5px;
-  stroke-opacity: 0.45;
+  stroke-opacity: 0.5;
   transition: stroke-opacity var(--transition-fast);
-}
-
-.node-group:hover ~ .links .link-line {
-  stroke-opacity: 0.8;
 }
 
 /* Nodos */

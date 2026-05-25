@@ -1,4 +1,4 @@
-import { Component, ElementRef, ViewChild, inject, effect, OnDestroy, AfterViewInit } from '@angular/core';
+import { Component, ElementRef, ViewChild, inject, effect, OnDestroy, AfterViewInit, ViewEncapsulation } from '@angular/core';
 import * as d3 from 'd3';
 import { BacklinksService, GraphNode, GraphEdge } from '../../core/services/backlinks.service';
 import { FileSystemService } from '../../core/services/file-system.service';
@@ -18,7 +18,8 @@ interface D3Link extends d3.SimulationLinkDatum<D3Node> {
   selector: 'app-graph',
   standalone: true,
   templateUrl: './graph.component.html',
-  styleUrl: './graph.component.css'
+  styleUrl: './graph.component.css',
+  encapsulation: ViewEncapsulation.None
 })
 export class GraphComponent implements AfterViewInit, OnDestroy {
   backlinksService = inject(BacklinksService);
