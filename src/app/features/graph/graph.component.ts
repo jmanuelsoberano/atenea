@@ -294,10 +294,12 @@ export class GraphComponent implements AfterViewInit, OnDestroy {
   private async openOrCreateNote(node: D3Node): Promise<void> {
     if (node.exists && node.path) {
       await this.fileSystem.openFile(node.path);
+      this.fileSystem.activeView.set('editor'); // Cambiar a vista editor
     } else {
       const vaultPath = this.fileSystem.currentVaultPath();
       if (vaultPath) {
         await this.fileSystem.createFile(vaultPath, node.id);
+        this.fileSystem.activeView.set('editor'); // Cambiar a vista editor
       }
     }
   }

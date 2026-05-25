@@ -14,6 +14,9 @@ export class FileSystemService {
   isLoading = signal<boolean>(false);
   error = signal<string | null>(null);
 
+  // Vista activa del panel central de la bóveda: 'editor' o 'graph'
+  activeView = signal<'editor' | 'graph'>('editor');
+
   // Seleccionar una carpeta del sistema de archivos local para usar como Bóveda
   async selectVault(): Promise<void> {
     this.isLoading.set(true);

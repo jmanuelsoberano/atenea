@@ -16,8 +16,8 @@ export class AppComponent {
 
   @ViewChild(ExplorerComponent) explorerRef!: ExplorerComponent;
 
-  // Alternancia de vista en el panel central: 'editor' o 'graph'
-  activeView = signal<'editor' | 'graph'>('editor');
+  // Delegar la vista activa en la Signal global de FileSystemService
+  activeView = this.fileSystem.activeView;
 
   // Estado de cambios sin guardar recibido desde el editor
   isDirty = signal<boolean>(false);
