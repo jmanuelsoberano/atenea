@@ -57,3 +57,17 @@ Para mantener la base de código limpia, mantenible y portable para futuras sesi
 2.  **Bajo Acoplamiento:** Los componentes no deben importar dependencias cruzadas de otros módulos. Todo debe comunicarse vía servicios o interfaces bien definidas.
 3.  **Tipado Estricto:** Nunca usar `any`. Todas las respuestas IPC de Rust deben tener una interfaz TypeScript equivalente en el frontend (`src/app/core/models/`).
 4.  **Operaciones en Rust:** Todo escaneo de carpetas, lectura pesada e indexación de backlinks inicial se realiza en Rust para aprovechar el paralelismo de la CPU y la velocidad de acceso directo.
+
+---
+
+## 5. Directrices de Publicación y Control de Cambios (CRÍTICO para Agentes e IA)
+
+Para asegurar la estabilidad del proyecto y el control del usuario, cualquier agente de Inteligencia Artificial (LLM) o desarrollador debe cumplir estrictamente las siguientes directrices en esta base de código:
+
+> [!IMPORTANT]
+> **POLÍTICA DE LANZAMIENTOS Y TAGS (PROHIBICIÓN DE AUTOPUBLICACORES):**
+> *   **PROHIBIDO** crear o empujar etiquetas de git (`git tag v*`) de forma autónoma.
+> *   **PROHIBIDO** crear o disparar lanzamientos ("Releases") en GitHub sin confirmación explícita del usuario.
+> *   Antes de realizar cualquier lanzamiento, compilación de versión oficial o etiquetado en Git, el desarrollador o agente **DEBE PREGUNTAR PRIMERO** al usuario y recibir un "Sí" o aprobación expresa.
+> *   Las confirmaciones intermedias (commits) para guardar progreso en la rama `main` están permitidas para evitar la pérdida de trabajo, pero los despliegues formales a producción son decisión exclusiva del usuario.
+
