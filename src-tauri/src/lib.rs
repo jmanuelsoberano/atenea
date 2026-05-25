@@ -527,3 +527,39 @@ pub fn run() {
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_decode_url() {
+        assert_eq!(decode_url("hello%20world"), "hello world");
+        assert_eq!(decode_url("hello+world"), "hello world");
+        assert_eq!(decode_url("no-escapes"), "no-escapes");
+        assert_eq!(decode_url("nested%20folder%20path/with%20spaces"), "nested folder path/with spaces");
+    }
+
+    #[test]
+    fn test_extract_stem() {
+        assert_eq!(extract_stem("../docs/Manual%20Atenea.md"), Some("Manual Atenea".to_string()));
+        assert_eq!(extract_stem("SimpleNote.markdown"), Some("SimpleNote".to_string()));
+        assert_eq!(extract_stem("image.png"), None); // Las extensiones que no sean markdown se ignoran
+        assert_eq!(extract_stem("https://google.com/test.md"), None); // Los enlaces externos se ignoran
+        assert_eq!(extract_stem("mailto:test@example.com"), None);
+    }
+
+    #[test]
+    fn test_extract_links() {
+        let content = "Aquí hay un [[WikiLink]] y otro [[Nota con Alias|Alias de Nota]]. \
+                       Además, un [Markdown Link](../docs/Nota%20Markdown.md) y un \
+                       enlace roto o externo [Google](https://google.com).";
+        
+        let links = extract_links(content);
+        assert_eq!(links.len(), 3);
+        assert!(links.contains("wikilink"));
+        assert!(links.contains("nota con alias"));
+        assert!(links.contains("nota markdown"));
+        assert!(!links.contains("google"));
+    }
+}

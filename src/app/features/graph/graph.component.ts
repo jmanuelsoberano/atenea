@@ -40,6 +40,14 @@ export class GraphComponent implements AfterViewInit, OnDestroy {
         this.updateGraph(data.nodes, data.links);
       }
     });
+
+    // Escuchar reactivamente el archivo activo para actualizar el resaltado en el grafo sin re-renderizar todo
+    effect(() => {
+      const activePath = this.fileSystem.activeFilePath();
+      if (this.svgSelection) {
+        this.updateActiveNodeHighlight(activePath);
+      }
+    });
   }
 
   ngAfterViewInit(): void {
@@ -154,9 +162,9 @@ export class GraphComponent implements AfterViewInit, OnDestroy {
 
     // Círculos del nodo
     nodeG.append('circle')
-      .attr('r', d => (d.path && d.path === this.fileSystem.activeFilePath()) ? 10 : 7)
+      .attr('r', d => (d.path && this.isSamePath(d.path, this.fileSystem.activeFilePath())) ? 10 : 7)
       .attr('class', d => {
-        if (d.path && d.path === this.fileSystem.activeFilePath()) return 'circle-node active';
+        if (d.path && this.isSamePath(d.path, this.fileSystem.activeFilePath())) return 'circle-node active';
         return d.exists ? 'circle-node physical' : 'circle-node ghost';
       });
 
@@ -165,7 +173,7 @@ export class GraphComponent implements AfterViewInit, OnDestroy {
       .text(d => d.id)
       .attr('y', 18)
       .attr('text-anchor', 'middle')
-      .attr('class', d => (d.path && d.path === this.fileSystem.activeFilePath()) ? 'text-node active' : 'text-node');
+      .attr('class', d => (d.path && this.isSamePath(d.path, this.fileSystem.activeFilePath())) ? 'text-node active' : 'text-node');
 
     // Funciones internas auxiliares para resaltar e indexar relaciones mediante cierres (closures)
     const resetHighlight = () => {
@@ -234,6 +242,11 @@ export class GraphComponent implements AfterViewInit, OnDestroy {
         applyHighlight(clickedNode);
         nodeG.selectAll('circle').classed('selected', (d: any) => d && d.id === clickedNode.id);
         nodeG.selectAll('text').classed('selected', (d: any) => d && d.id === clickedNode.id);
+
+        // Sincronizar selección con el explorador de archivos (auto-revelado y marcado activo)
+        if (clickedNode.path && clickedNode.exists) {
+          this.fileSystem.activeFilePath.set(clickedNode.path);
+        }
       }
     });
 
@@ -318,6 +331,37 @@ export class GraphComponent implements AfterViewInit, OnDestroy {
     );
     
     this.simulation.alpha(0.3).restart();
+  }
+
+  private isSamePath(p1: string | null, p2: string | null): boolean {
+    if (!p1 || !p2) return false;
+    return p1.replace(/\\/g, '/') === p2.replace(/\\/g, '/');
+  }
+
+  private updateActiveNodeHighlight(activePath: string | null): void {
+    if (!this.svgSelection) return;
+
+    // Actualizar clases y radios de los círculos
+    this.svgSelection.selectAll<SVGCircleElement, D3Node>('.circle-node')
+      .attr('r', d => (d.path && this.isSamePath(d.path, activePath)) ? 10 : 7)
+      .attr('class', d => {
+        const isSelected = this.selectedNodeId === d.id;
+        let baseClass = '';
+        if (d.path && this.isSamePath(d.path, activePath)) {
+          baseClass = 'circle-node active';
+        } else {
+          baseClass = d.exists ? 'circle-node physical' : 'circle-node ghost';
+        }
+        return isSelected ? `${baseClass} selected` : baseClass;
+      });
+
+    // Actualizar clases de los textos
+    this.svgSelection.selectAll<SVGTextElement, D3Node>('.text-node')
+      .attr('class', d => {
+        const isSelected = this.selectedNodeId === d.id;
+        let baseClass = (d.path && this.isSamePath(d.path, activePath)) ? 'text-node active' : 'text-node';
+        return isSelected ? `${baseClass} selected` : baseClass;
+      });
   }
 
   ngOnDestroy(): void {

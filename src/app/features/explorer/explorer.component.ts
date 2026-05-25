@@ -20,7 +20,7 @@ export class ExplorerComponent {
     return parts[parts.length - 1] || path;
   }
 
-  // Set reactivo para carpetas expandidas
+  // Set reactivo para carpetas expandidas (almacenadas siempre normalizadas con '/')
   expandedPaths = signal<Set<string>>(new Set<string>());
 
   constructor() {
@@ -39,9 +39,22 @@ export class ExplorerComponent {
     });
   }
 
+  // Compara dos rutas de archivos de manera inmune a los separadores de Windows
+  isActive(nodePath: string): boolean {
+    const active = this.fileSystem.activeFilePath();
+    if (!active || !nodePath) return false;
+    return active.replace(/\\/g, '/') === nodePath.replace(/\\/g, '/');
+  }
+
   // Revela un archivo específico expandiendo todas las carpetas ancestras
   private revealPathInTree(activePath: string, vaultPath: string): void {
-    const current = new Set(this.expandedPaths());
+    const current = new Set<string>();
+    
+    // Copiar y normalizar las rutas existentes en expandedPaths
+    for (const p of this.expandedPaths()) {
+      current.add(p.replace(/\\/g, '/'));
+    }
+
     const normalizedActive = activePath.replace(/\\/g, '/');
     const normalizedVault = vaultPath.replace(/\\/g, '/');
     
@@ -52,8 +65,7 @@ export class ExplorerComponent {
         const part = parts[i];
         if (part) {
           accumulated += '/' + part;
-          const originalAccumulated = accumulated.replace(/\//g, activePath.includes('\\') ? '\\' : '/');
-          current.add(originalAccumulated);
+          current.add(accumulated);
         }
       }
       this.expandedPaths.set(current);
@@ -98,11 +110,16 @@ export class ExplorerComponent {
   promptInput = signal<string>('');
 
   toggleFolder(path: string): void {
-    const current = new Set(this.expandedPaths());
-    if (current.has(path)) {
-      current.delete(path);
+    const current = new Set<string>();
+    for (const p of this.expandedPaths()) {
+      current.add(p.replace(/\\/g, '/'));
+    }
+    
+    const normalized = path.replace(/\\/g, '/');
+    if (current.has(normalized)) {
+      current.delete(normalized);
     } else {
-      current.add(path);
+      current.add(normalized);
     }
     this.expandedPaths.set(current);
   }
@@ -111,7 +128,7 @@ export class ExplorerComponent {
     if (this.searchQuery().trim()) {
       return true; // Auto-expandir todo para mostrar los resultados de búsqueda
     }
-    return this.expandedPaths().has(path);
+    return this.expandedPaths().has(path.replace(/\\/g, '/'));
   }
 
   onFileClick(path: string): void {

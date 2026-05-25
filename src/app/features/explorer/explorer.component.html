@@ -67,7 +67,7 @@
 <ng-template #nodeTemplate let-node>
   <div 
     class="tree-node"
-    [class.active]="fileSystem.activeFilePath() === node.path"
+    [class.active]="isActive(node.path)"
     [class.is-dir]="node.isDir"
     [style.padding-left.px]="node.depth * 12 + 8"
   >
