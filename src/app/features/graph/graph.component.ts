@@ -232,8 +232,8 @@ export class GraphComponent implements AfterViewInit, OnDestroy {
         // Seleccionar y bloquear el resaltado
         this.selectedNodeId = clickedNode.id;
         applyHighlight(clickedNode);
-        nodeG.selectAll('circle').classed('selected', (d: any) => d.id === clickedNode.id);
-        nodeG.selectAll('text').classed('selected', (d: any) => d.id === clickedNode.id);
+        nodeG.selectAll('circle').classed('selected', (d: any) => d && d.id === clickedNode.id);
+        nodeG.selectAll('text').classed('selected', (d: any) => d && d.id === clickedNode.id);
       }
     });
 

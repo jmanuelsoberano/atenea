@@ -29,9 +29,14 @@ export class ExplorerComponent {
       const activePath = this.fileSystem.activeFilePath();
       const vaultPath = this.fileSystem.currentVaultPath();
       if (activePath && vaultPath) {
-        this.revealPathInTree(activePath, vaultPath);
+        // Ejecución diferida usando setTimeout para garantizar que el cambio de señal
+        // ocurra fuera del ciclo de detección de cambios actual de Angular, previniendo
+        // congelamientos de la interfaz (ExpressionChangedAfterItHasBeenCheckedError).
+        setTimeout(() => {
+          this.revealPathInTree(activePath, vaultPath);
+        }, 0);
       }
-    }, { allowSignalWrites: true });
+    });
   }
 
   // Revela un archivo específico expandiendo todas las carpetas ancestras
