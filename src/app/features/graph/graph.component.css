@@ -21,10 +21,15 @@
   stroke: hsl(220, 12%, 32%);
   stroke-width: 1.5px;
   stroke-opacity: 0.5;
-  transition: stroke-opacity var(--transition-fast);
+  transition: stroke-opacity var(--transition-normal), stroke var(--transition-normal), stroke-width var(--transition-normal);
 }
 
 /* Nodos */
+.node-group {
+  transition: opacity var(--transition-normal);
+  cursor: pointer;
+}
+
 .circle-node {
   stroke-width: 1.5px;
   transition: all var(--transition-fast);

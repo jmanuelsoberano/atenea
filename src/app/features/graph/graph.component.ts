@@ -155,6 +155,51 @@ export class GraphComponent implements AfterViewInit, OnDestroy {
       await this.openOrCreateNote(d);
     });
 
+    // Interactividad de Hover para resaltar vecinos conectados y atenuar el resto
+    nodeG.on('mouseenter', (event, hoveredNode) => {
+      const connectedNodeIds = new Set<string>();
+      connectedNodeIds.add(hoveredNode.id);
+      
+      links.forEach(l => {
+        const sourceId = (l.source as D3Node).id;
+        const targetId = (l.target as D3Node).id;
+        if (sourceId === hoveredNode.id) {
+          connectedNodeIds.add(targetId);
+        } else if (targetId === hoveredNode.id) {
+          connectedNodeIds.add(sourceId);
+        }
+      });
+
+      // Atenuar nodos no conectados
+      nodeG.style('opacity', d => connectedNodeIds.has(d.id) ? 1.0 : 0.15);
+      
+      // Resaltar conexiones correspondientes
+      link
+        .style('stroke-opacity', l => {
+          const sourceId = (l.source as D3Node).id;
+          const targetId = (l.target as D3Node).id;
+          return (sourceId === hoveredNode.id || targetId === hoveredNode.id) ? 1.0 : 0.05;
+        })
+        .style('stroke', l => {
+          const sourceId = (l.source as D3Node).id;
+          const targetId = (l.target as D3Node).id;
+          return (sourceId === hoveredNode.id || targetId === hoveredNode.id) ? 'var(--accent-color)' : 'hsl(220, 12%, 32%)';
+        })
+        .style('stroke-width', l => {
+          const sourceId = (l.source as D3Node).id;
+          const targetId = (l.target as D3Node).id;
+          return (sourceId === hoveredNode.id || targetId === hoveredNode.id) ? '2.5px' : '1.5px';
+        });
+    });
+
+    nodeG.on('mouseleave', () => {
+      nodeG.style('opacity', 1.0);
+      link
+        .style('stroke-opacity', 0.5)
+        .style('stroke', 'hsl(220, 12%, 32%)')
+        .style('stroke-width', '1.5px');
+    });
+
     // Hover tooltip rápido
     nodeG.append('title')
       .text(d => `${d.id} ${d.exists ? '' : '(Nota fantasma)'}`);
