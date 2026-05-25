@@ -1,8 +1,9 @@
 import { Component, ElementRef, ViewChild, inject, signal, effect, OnDestroy, Output, EventEmitter } from '@angular/core';
-import { EditorState, Transaction } from '@codemirror/state';
+import { EditorState, Transaction, RangeSetBuilder } from '@codemirror/state';
 import { EditorView, basicSetup } from 'codemirror';
 import { markdown } from '@codemirror/lang-markdown';
 import { HighlightStyle, syntaxHighlighting } from '@codemirror/language';
+import { ViewPlugin, ViewUpdate, DecorationSet, Decoration } from '@codemirror/view';
 import { tags as t } from '@lezer/highlight';
 import { FileSystemService } from '../../core/services/file-system.service';
 import { BacklinksService } from '../../core/services/backlinks.service';
@@ -60,6 +61,64 @@ const customHighlightStyle = HighlightStyle.define([
   { tag: t.comment, color: "var(--text-muted)", fontStyle: "italic" },
   { tag: t.meta, color: "var(--text-muted)" }
 ]);
+
+// 3. Extensión de CodeMirror 6 para detectar y decorar enlaces estándar rotos reactivamente
+function createBrokenLinksPlugin(backlinksService: BacklinksService) {
+  return ViewPlugin.fromClass(class {
+    decorations: DecorationSet;
+
+    constructor(view: EditorView) {
+      this.decorations = this.getDecorations(view);
+    }
+
+    update(update: ViewUpdate) {
+      if (update.docChanged || update.viewportChanged) {
+        this.decorations = this.getDecorations(update.view);
+      }
+    }
+
+    getDecorations(view: EditorView): DecorationSet {
+      const builder = new RangeSetBuilder<Decoration>();
+      const text = view.state.doc.toString();
+      const regex = /\[([^\]]+)\]\(([^)]+)\)/g;
+      let match;
+      const nodes = backlinksService.graphData().nodes;
+      
+      while ((match = regex.exec(text)) !== null) {
+        const pathContent = match[2].trim();
+        if (!pathContent.includes('://') && !pathContent.startsWith('mailto:')) {
+          const decodedPath = decodeURIComponent(pathContent);
+          const parts = decodedPath.split(/[\\/]/);
+          const filename = parts[parts.length - 1] || decodedPath;
+          let stem = filename;
+          if (filename.includes('.')) {
+            const dotParts = filename.split('.');
+            const ext = dotParts[dotParts.length - 1].toLowerCase();
+            if (ext === 'md' || ext === 'markdown') {
+              dotParts.pop();
+              stem = dotParts.join('.');
+            } else {
+              continue;
+            }
+          }
+          
+          const lowercaseStem = stem.toLowerCase();
+          const foundNode = nodes.find(n => n.id.toLowerCase() === lowercaseStem);
+          const exists = foundNode ? foundNode.exists : false;
+          
+          if (!exists) {
+            const start = match.index;
+            const end = match.index + match[0].length;
+            builder.add(start, end, Decoration.mark({ class: "cm-link-broken" }));
+          }
+        }
+      }
+      return builder.finish();
+    }
+  }, {
+    decorations: v => v.decorations
+  });
+}
 
 @Component({
   selector: 'app-editor',
@@ -124,7 +183,8 @@ export class EditorComponent implements OnDestroy {
         EditorView.lineWrapping,
         customTheme,
         syntaxHighlighting(customHighlightStyle),
-        // Manejador de eventos para clics interactivos en enlaces [[Backlinks]]
+        createBrokenLinksPlugin(this.backlinksService),
+        // Manejador de eventos para clics interactivos en enlaces [[Backlinks]] y [Markdown](...)
         EditorView.domEventHandlers({
           click: (event, view) => {
             const pos = view.posAtCoords({ x: event.clientX, y: event.clientY });
@@ -134,7 +194,9 @@ export class EditorComponent implements OnDestroy {
             const text = line.text;
             const relPos = pos - line.from;
             
+            // 1. Detectar WikiLinks [[...]]
             let start = 0;
+            let wikiClicked = false;
             while (true) {
               const lBracket = text.indexOf('[[', start);
               if (lBracket === -1) break;
@@ -147,10 +209,57 @@ export class EditorComponent implements OnDestroy {
                 if (target) {
                   this.openOrCreateNote(target);
                   event.preventDefault();
+                  wikiClicked = true;
                 }
                 break;
               }
               start = rBracket + 2;
+            }
+            
+            if (wikiClicked) return;
+            
+            // 2. Detectar Standard Markdown Links [...](...)
+            start = 0;
+            while (true) {
+              const lSq = text.indexOf('[', start);
+              if (lSq === -1) break;
+              const rSq = text.indexOf(']', lSq);
+              if (rSq === -1) break;
+              
+              if (rSq + 1 < text.length && text.charAt(rSq + 1) === '(') {
+                const rParen = text.indexOf(')', rSq + 2);
+                if (rParen === -1) break;
+                
+                if (relPos >= lSq && relPos <= rParen + 1) {
+                  const pathContent = text.substring(rSq + 2, rParen).trim();
+                  
+                  if (pathContent && !pathContent.includes('://') && !pathContent.startsWith('mailto:')) {
+                    const decodedPath = decodeURIComponent(pathContent);
+                    const parts = decodedPath.split(/[\\/]/);
+                    const filename = parts[parts.length - 1] || decodedPath;
+                    let stem = filename;
+                    if (filename.includes('.')) {
+                      const dotParts = filename.split('.');
+                      const ext = dotParts[dotParts.length - 1].toLowerCase();
+                      if (ext === 'md' || ext === 'markdown') {
+                        dotParts.pop();
+                        stem = dotParts.join('.');
+                      } else {
+                        break;
+                      }
+                    }
+                    
+                    if (stem) {
+                      this.openOrCreateNote(stem);
+                      event.preventDefault();
+                    }
+                  }
+                  break;
+                }
+                start = rParen + 1;
+              } else {
+                start = rSq + 1;
+              }
             }
           }
         }),

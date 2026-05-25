@@ -149,35 +149,140 @@ fn create_directory(parent_path: String, name: String) -> Result<String, String>
     Ok(dir_path.to_string_lossy().to_string())
 }
 
+fn decode_url(path: &str) -> String {
+    let mut decoded = String::new();
+    let mut chars = path.chars().peekable();
+    while let Some(c) = chars.next() {
+        if c == '%' {
+            let mut hex = String::new();
+            if let Some(&h1) = chars.peek() {
+                if h1.is_ascii_hexdigit() {
+                    chars.next();
+                    hex.push(h1);
+                    if let Some(&h2) = chars.peek() {
+                        if h2.is_ascii_hexdigit() {
+                            chars.next();
+                            hex.push(h2);
+                        }
+                    }
+                }
+            }
+            if hex.len() == 2 {
+                if let Ok(val) = u8::from_str_radix(&hex, 16) {
+                    decoded.push(val as char);
+                    continue;
+                }
+            }
+            decoded.push('%');
+            decoded.push_str(&hex);
+        } else if c == '+' {
+            decoded.push(' ');
+        } else {
+            decoded.push(c);
+        }
+    }
+    decoded
+}
+
+fn extract_stem(path: &str) -> Option<String> {
+    let decoded = decode_url(path);
+    let trimmed = decoded.trim();
+    
+    if trimmed.contains("://") || trimmed.starts_with("mailto:") {
+        return None;
+    }
+    
+    let filename = match trimmed.rfind('/') {
+        Some(idx) => &trimmed[idx + 1..],
+        None => match trimmed.rfind('\\') {
+            Some(idx) => &trimmed[idx + 1..],
+            None => trimmed
+        }
+    };
+    
+    if filename.is_empty() {
+        return None;
+    }
+    
+    if let Some(dot_idx) = filename.rfind('.') {
+        let ext = &filename[dot_idx + 1..].to_lowercase();
+        if ext == "md" || ext == "markdown" {
+            Some(filename[..dot_idx].to_string())
+        } else {
+            None
+        }
+    } else {
+        Some(filename.to_string())
+    }
+}
+
 // 3. Analizador Manual y Eficiente de Backlinks
 fn extract_links(content: &str) -> HashSet<String> {
     let mut links = HashSet::new();
     let mut chars = content.char_indices().peekable();
     
     while let Some((_, c)) = chars.next() {
-        if c == '[' && chars.peek().map(|&(_, next_c)| next_c) == Some('[') {
-            chars.next(); // consumir el segundo '['
-            
-            let mut link_text = String::new();
-            let mut closed = false;
-            
-            while let Some((_, inner_c)) = chars.next() {
-                if inner_c == ']' && chars.peek().map(|&(_, next_c)| next_c) == Some(']') {
-                    chars.next(); // consumir el segundo ']'
-                    closed = true;
-                    break;
+        if c == '[' {
+            if chars.peek().map(|&(_, next_c)| next_c) == Some('[') {
+                chars.next(); // consumir el segundo '['
+                
+                let mut link_text = String::new();
+                let mut closed = false;
+                
+                while let Some((_, inner_c)) = chars.next() {
+                    if inner_c == ']' && chars.peek().map(|&(_, next_c)| next_c) == Some(']') {
+                        chars.next(); // consumir el segundo ']'
+                        closed = true;
+                        break;
+                    }
+                    link_text.push(inner_c);
                 }
-                link_text.push(inner_c);
-            }
-            
-            if closed {
-                let target = match link_text.find('|') {
-                    Some(idx) => &link_text[..idx],
-                    None => &link_text
-                };
-                let trimmed = target.trim().to_string();
-                if !trimmed.is_empty() {
-                    links.insert(trimmed.to_lowercase());
+                
+                if closed {
+                    let target = match link_text.find('|') {
+                        Some(idx) => &link_text[..idx],
+                        None => &link_text
+                    };
+                    let trimmed = target.trim().to_string();
+                    if !trimmed.is_empty() {
+                        links.insert(trimmed.to_lowercase());
+                    }
+                }
+            } else {
+                // Potencial enlace estándar [Label](Path)
+                let mut label = String::new();
+                let mut label_closed = false;
+                
+                while let Some((_, inner_c)) = chars.next() {
+                    if inner_c == ']' {
+                        label_closed = true;
+                        break;
+                    }
+                    label.push(inner_c);
+                }
+                
+                if label_closed && chars.peek().map(|&(_, next_c)| next_c) == Some('(') {
+                    chars.next(); // consumir '('
+                    
+                    let mut path = String::new();
+                    let mut path_closed = false;
+                    
+                    while let Some((_, inner_c)) = chars.next() {
+                        if inner_c == ')' {
+                            path_closed = true;
+                            break;
+                        }
+                        path.push(inner_c);
+                    }
+                    
+                    if path_closed {
+                        if let Some(stem) = extract_stem(&path) {
+                            let trimmed = stem.trim().to_string();
+                            if !trimmed.is_empty() {
+                                links.insert(trimmed.to_lowercase());
+                            }
+                        }
+                    }
                 }
             }
         }
