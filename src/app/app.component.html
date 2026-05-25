@@ -1,6 +1,11 @@
 <div class="app-container">
   <!-- Barra lateral izquierda para el explorador de archivos -->
-  <aside class="sidebar">
+  <aside 
+    class="sidebar" 
+    [style.width.px]="sidebarWidth()"
+    [style.border-right]="sidebarWidth() === 0 ? 'none' : ''"
+    [class.collapsed]="sidebarWidth() === 0"
+  >
     <div class="sidebar-header">
       <span class="app-title">Atenea</span>
     </div>
@@ -8,6 +13,13 @@
       <app-explorer />
     </div>
   </aside>
+
+  <!-- Tirador premium para redimensionar la barra lateral (drag-to-resize) -->
+  <div 
+    class="sidebar-resizer" 
+    [class.active]="isResizing()" 
+    (mousedown)="onResizeStart($event)"
+  ></div>
 
   <!-- Área de trabajo central (Editor / Grafo / Vista de Bienvenida) -->
   <main class="main-workspace">
