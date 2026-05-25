@@ -30,6 +30,7 @@ export class GraphComponent implements AfterViewInit, OnDestroy {
   private simulation?: d3.Simulation<D3Node, D3Link>;
   private svgSelection?: d3.Selection<SVGSVGElement, unknown, null, undefined>;
   private gContainer?: d3.Selection<SVGGElement, unknown, null, undefined>;
+  private selectedNodeId: string | null = null;
 
   constructor() {
     // Escuchar cambios reactivos en los datos del grafo
@@ -57,6 +58,19 @@ export class GraphComponent implements AfterViewInit, OnDestroy {
       
     this.svgSelection.call(zoom);
 
+    // Clic en el fondo para limpiar la selección fija
+    this.svgSelection.on('click', (event) => {
+      const isNodeClick = event.target.closest('.node-group');
+      if (!isNodeClick) {
+        this.selectedNodeId = null;
+        this.svgSelection?.selectAll('.node-group').style('opacity', 1.0);
+        this.svgSelection?.selectAll('.link-line')
+          .style('stroke-opacity', 0.5)
+          .style('stroke', 'hsl(220, 12%, 32%)')
+          .style('stroke-width', '1.5px');
+      }
+    });
+
     // Si ya hay datos cargados en el servicio al iniciar, renderizar
     const initialData = this.backlinksService.graphData();
     if (initialData.nodes.length > 0) {
@@ -66,6 +80,8 @@ export class GraphComponent implements AfterViewInit, OnDestroy {
 
   private updateGraph(nodesData: GraphNode[], edgesData: GraphEdge[]): void {
     if (!this.svgSelection || !this.gContainer) return;
+
+    this.selectedNodeId = null; // Limpiar selección fija en recarga
 
     // 1. Obtener dimensiones del lienzo responsivo
     const rect = this.svgContainer.nativeElement.getBoundingClientRect();
@@ -149,14 +165,16 @@ export class GraphComponent implements AfterViewInit, OnDestroy {
       .attr('text-anchor', 'middle')
       .attr('class', d => (d.path && d.path === this.fileSystem.activeFilePath()) ? 'text-node active' : 'text-node');
 
-    // Doble clic para abrir/crear la nota
-    nodeG.on('dblclick', async (event, d) => {
-      event.preventDefault();
-      await this.openOrCreateNote(d);
-    });
+    // Funciones internas auxiliares para resaltar e indexar relaciones mediante cierres (closures)
+    const resetHighlight = () => {
+      nodeG.style('opacity', 1.0);
+      link
+        .style('stroke-opacity', 0.5)
+        .style('stroke', 'hsl(220, 12%, 32%)')
+        .style('stroke-width', '1.5px');
+    };
 
-    // Interactividad de Hover para resaltar vecinos conectados y atenuar el resto
-    nodeG.on('mouseenter', (event, hoveredNode) => {
+    const applyHighlight = (hoveredNode: D3Node) => {
       const connectedNodeIds = new Set<string>();
       connectedNodeIds.add(hoveredNode.id);
       
@@ -190,14 +208,38 @@ export class GraphComponent implements AfterViewInit, OnDestroy {
           const targetId = (l.target as D3Node).id;
           return (sourceId === hoveredNode.id || targetId === hoveredNode.id) ? '2.5px' : '1.5px';
         });
+    };
+
+    // Doble clic para abrir/crear la nota
+    nodeG.on('dblclick', async (event, d) => {
+      event.preventDefault();
+      await this.openOrCreateNote(d);
+    });
+
+    // Clic simple para seleccionar y bloquear (pin) el resaltado de relaciones
+    nodeG.on('click', (event, clickedNode) => {
+      event.stopPropagation(); // Evitar propagación del click al fondo
+      
+      if (this.selectedNodeId === clickedNode.id) {
+        // Deseleccionar si ya estaba seleccionado
+        this.selectedNodeId = null;
+        resetHighlight();
+      } else {
+        // Seleccionar y bloquear el resaltado
+        this.selectedNodeId = clickedNode.id;
+        applyHighlight(clickedNode);
+      }
+    });
+
+    // Interactividad de Hover: solo activa si no hay una selección fija por clic
+    nodeG.on('mouseenter', (event, hoveredNode) => {
+      if (this.selectedNodeId) return;
+      applyHighlight(hoveredNode);
     });
 
     nodeG.on('mouseleave', () => {
-      nodeG.style('opacity', 1.0);
-      link
-        .style('stroke-opacity', 0.5)
-        .style('stroke', 'hsl(220, 12%, 32%)')
-        .style('stroke-width', '1.5px');
+      if (this.selectedNodeId) return;
+      resetHighlight();
     });
 
     // Hover tooltip rápido
