@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed } from '@angular/core';
+import { Component, inject, signal, computed, effect } from '@angular/core';
 import { NgTemplateOutlet, SlicePipe } from '@angular/common';
 import { FileSystemService } from '../../core/services/file-system.service';
 import { FileNode } from '../../core/models/file-node.model';
@@ -22,6 +22,38 @@ export class ExplorerComponent {
 
   // Set reactivo para carpetas expandidas
   expandedPaths = signal<Set<string>>(new Set<string>());
+
+  constructor() {
+    // Escuchar reactivamente cambios en el archivo activo para revelarlo en el árbol
+    effect(() => {
+      const activePath = this.fileSystem.activeFilePath();
+      const vaultPath = this.fileSystem.currentVaultPath();
+      if (activePath && vaultPath) {
+        this.revealPathInTree(activePath, vaultPath);
+      }
+    });
+  }
+
+  // Revela un archivo específico expandiendo todas las carpetas ancestras
+  private revealPathInTree(activePath: string, vaultPath: string): void {
+    const current = new Set(this.expandedPaths());
+    const normalizedActive = activePath.replace(/\\/g, '/');
+    const normalizedVault = vaultPath.replace(/\\/g, '/');
+    
+    if (normalizedActive.startsWith(normalizedVault)) {
+      const parts = normalizedActive.substring(normalizedVault.length).split('/');
+      let accumulated = normalizedVault;
+      for (let i = 0; i < parts.length - 1; i++) {
+        const part = parts[i];
+        if (part) {
+          accumulated += '/' + part;
+          const originalAccumulated = accumulated.replace(/\//g, activePath.includes('\\') ? '\\' : '/');
+          current.add(originalAccumulated);
+        }
+      }
+      this.expandedPaths.set(current);
+    }
+  }
 
   // Consulta de búsqueda en tiempo real
   searchQuery = signal<string>('');
