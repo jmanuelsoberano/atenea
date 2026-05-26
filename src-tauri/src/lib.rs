@@ -562,4 +562,88 @@ mod tests {
         assert!(links.contains("nota markdown"));
         assert!(!links.contains("google"));
     }
+
+    #[test]
+    fn test_vault_index_lifecycle_integration() {
+        // 1. Inicializar índice simulado en memoria
+        let mut index = VaultIndex::default();
+        
+        // 2. Registrar notas físicas existentes
+        index.note_name_to_path.insert("nota a".to_string(), "vault/Nota A.md".to_string());
+        index.note_name_to_path.insert("nota b".to_string(), "vault/Nota B.md".to_string());
+        
+        // 3. Simular parseo y registro de enlaces
+        // Nota A apunta a Nota B (física) y a Nota C (fantasma/inexistente)
+        let content_a = "Enlace a [[Nota B]] y un [Markdown Roto](Nota%20C.md) fantasma.";
+        let links_a = extract_links(content_a);
+        index.links.insert("vault/Nota A.md".to_string(), links_a);
+        
+        // Nota B apunta de vuelta a Nota A
+        let content_b = "Enlace de retorno a [[Nota A]].";
+        let links_b = extract_links(content_b);
+        index.links.insert("vault/Nota B.md".to_string(), links_b);
+        
+        // 4. Validar cálculo de Backlinks (Simulando get_backlinks)
+        // Nota B debe tener como backlink a Nota A
+        let mut backlinks_b = Vec::new();
+        for (src_path, src_links) in &index.links {
+            if src_path != "vault/Nota B.md" && src_links.contains("nota b") {
+                backlinks_b.push(src_path.clone());
+            }
+        }
+        assert_eq!(backlinks_b.len(), 1);
+        assert_eq!(backlinks_b[0], "vault/Nota A.md");
+        
+        // Nota C (fantasma) debe tener como backlink a Nota A
+        let mut backlinks_c = Vec::new();
+        for (src_path, src_links) in &index.links {
+            if src_links.contains("nota c") {
+                backlinks_c.push(src_path.clone());
+            }
+        }
+        assert_eq!(backlinks_c.len(), 1);
+        assert_eq!(backlinks_c[0], "vault/Nota A.md");
+
+        // 5. Validar estructura del Grafo de Conocimiento (Simulando get_graph_data)
+        let mut nodes_map = HashMap::new();
+        
+        // Registrar físicas
+        for (name_lc, _path) in &index.note_name_to_path {
+            nodes_map.insert(name_lc.clone(), (name_lc.clone(), true)); // (id, exists)
+        }
+        
+        // Registrar fantasmas y aristas
+        let mut edges = Vec::new();
+        for (src_path, src_links) in &index.links {
+            for target_lc in src_links {
+                if !nodes_map.contains_key(target_lc) {
+                    nodes_map.insert(target_lc.clone(), (target_lc.clone(), false)); // exists: false
+                }
+                edges.push((src_path.clone(), target_lc.clone()));
+            }
+        }
+        
+        // Validar que existan Nota A (física), Nota B (física) y Nota C (fantasma)
+        assert_eq!(nodes_map.len(), 3);
+        assert!(nodes_map.get("nota a").unwrap().1); // Nota A existe
+        assert!(nodes_map.get("nota b").unwrap().1); // Nota B existe
+        assert!(!nodes_map.get("nota c").unwrap().1); // Nota C no existe (fantasma)
+        assert_eq!(edges.len(), 3); // A -> B, A -> C, B -> A
+
+        // 6. Simular indexación incremental tras edición (Simulando update_file_index)
+        // Editamos Nota A para quitar el enlace a Nota C (fantasma)
+        let updated_content_a = "Enlace a [[Nota B]] solamente.";
+        let updated_links_a = extract_links(updated_content_a);
+        index.links.insert("vault/Nota A.md".to_string(), updated_links_a);
+        
+        // Volver a calcular backlinks para Nota C
+        let mut updated_backlinks_c = Vec::new();
+        for (src_path, src_links) in &index.links {
+            if src_links.contains("nota c") {
+                updated_backlinks_c.push(src_path.clone());
+            }
+        }
+        // Nota C ya no debe tener backlinks de Nota A
+        assert_eq!(updated_backlinks_c.len(), 0);
+    }
 }
